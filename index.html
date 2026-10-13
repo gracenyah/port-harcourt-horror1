@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Lost City: Port Harcourt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Game view"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- no WebGL -->
+  <section id="nogl" class="screen gate" hidden>
+    <div class="gate-inner">
+      <h1 class="logo"><span>The Lost City</span><em>Port Harcourt</em></h1>
+      <p class="type">This game needs WebGL, and this browser has it switched off or unavailable. Try an up-to-date Chrome, Edge, Firefox or Safari with hardware acceleration on.</p>
+    </div>
+  </section>
+
+  <!-- start gate: audio needs one click before it can play -->
+  <section id="gate" class="screen gate">
+    <div class="gate-inner">
+      <p class="kicker">Rivers State · Night 41 after The Blackout</p>
+      <h1 class="logo"><span>The Lost City</span><em>Port Harcourt</em></h1>
+      <p class="type">A third-person survival horror in ten levels. Use headphones. Most of what hunts you, you will hear before you see.</p>
+      <div class="row">
+        <button id="btnEnter" class="btn primary">Enter the city</button>
+        <button id="btnSkipIntro" class="btn">Skip the opening</button>
+      </div>
+      <p class="fine">Keyboard and mouse recommended. Touch controls appear on phones and tablets. Progress saves in this browser.</p>
+    </div>
+  </section>
+
+  <!-- opening cinematic -->
+  <div id="cineUI" class="cine" hidden>
+    <div id="cineBlack" class="cine-black"></div>
+    <p id="cineLine" class="cine-line"></p>
+    <h1 id="cineTitle" class="logo big cine-title" hidden><span>The Lost City</span><em>Port Harcourt</em></h1>
+    <button id="btnCineSkip" class="btn small skip">Skip ›</button>
+  </div>
+
+  <!-- main menu -->
+  <section id="menu" class="screen menu" hidden>
+    <div class="menu-col">
+      <h1 class="logo big"><span>The Lost City</span><em>Port Harcourt</em></h1>
+      <p class="type tag">Since The Blackout, nobody who went in has come back out.</p>
+      <nav class="presets" aria-label="Main menu">
+        <button class="preset hero" id="mContinue"></button>
+        <button class="preset" data-act="chapters"><b>MAP</b><span>Chapters</span><small>Ten areas of Port Harcourt</small></button>
+        <button class="preset" data-act="survivor"><b>YOU</b><span>Survivor</span><small>Name · face · skin · hair · outfit · voice</small></button>
+        <button class="preset" data-act="squad"><b>CO-OP</b><span>Squad</span><small>Survival mode · multiplayer</small></button>
+        <button class="preset" data-act="records"><b>REC</b><span>Records</span><small>Leaderboards · achievements · challenges</small></button>
+        <button class="preset" data-act="bestiary"><b>NOTES</b><span>Field notes</span><small>What lives under the city</small></button>
+        <button class="preset" data-act="settings"><b>SET</b><span>Settings</span><small>Controls · sound · quality</small></button>
+        <button class="preset" data-act="opening"><b>FILM</b><span>Opening</span><small>Watch the flight in again</small></button>
+      </nav>
+      <p class="fine" id="menuWho"></p>
+    </div>
+    <aside class="panel" id="panel" hidden>
+      <button class="panel-close" id="panelClose" aria-label="Close panel">×</button>
+      <div id="panelBody"></div>
+    </aside>
+  </section>
+
+  <!-- character creator -->
+  <section id="creator" class="screen creator" hidden>
+    <div class="creator-col">
+      <p class="kicker">Survivor</p>
+      <h2>Who is going in?</h2>
+      <label class="field" for="cName"><span>Name — the city will learn it</span><input id="cName" maxlength="16" autocomplete="off" placeholder="Your name"></label>
+      <div class="opts" id="cGender"></div>
+      <div class="opts" id="cFace"></div>
+      <div class="opts swatches" id="cSkin"></div>
+      <div class="opts" id="cHair"></div>
+      <div class="opts" id="cOutfit"></div>
+      <div class="opts" id="cVoice"></div>
+      <div class="row">
+        <button class="btn" id="cVoiceTest">Hear voice</button>
+        <button class="btn primary" id="cDone">Done</button>
+      </div>
+      <p class="fine">More outfits unlock as you earn XP.</p>
+    </div>
+  </section>
+
+  <!-- chapter map -->
+  <section id="chapters" class="screen chapters" hidden>
+    <header class="chap-head"><div><p class="kicker">Rivers State · route of the missing</p><h2>Chapters</h2></div><button class="btn small" id="chapBack">Back</button></header>
+    <svg id="mapSvg" viewBox="0 0 740 400" role="img" aria-label="Map of the ten areas, connected by road"></svg>
+    <div id="chapList" class="chap-list"></div>
+  </section>
+
+  <!-- HUD -->
+  <div id="hud" hidden>
+    <div class="hud-tl">
+      <div class="loc"><span id="hudClock">02:47</span></div>
+      <div class="radio" id="hudRadio"><i></i><i></i><i></i><i></i><span>RADIO 102.3</span></div>
+    </div>
+    <div id="compass" class="compass" aria-hidden="true">
+      <div class="ticks">
+        <span class="cd" data-b="0">N</span><span class="cd sm" data-b="0.785">NE</span><span class="cd" data-b="1.571">E</span><span class="cd sm" data-b="2.356">SE</span>
+        <span class="cd" data-b="3.1416">S</span><span class="cd sm" data-b="-2.356">SW</span><span class="cd" data-b="-1.571">W</span><span class="cd sm" data-b="-0.785">NW</span>
+        <span class="obj-m" hidden></span>
+      </div>
+    </div>
+    <div class="hud-tr">
+      <div class="obj-k">Objective</div>
+      <div class="obj" id="hudObj"></div>
+      <div class="obj-sub" id="hudObjSub"></div>
+    </div>
+    <div class="hud-bl">
+      <div class="meter" id="mHp"><label>Health</label><div class="bar"><i></i></div><b>100</b></div>
+      <div class="meter" id="mSt"><label>Stamina</label><div class="bar"><i></i></div><b>100</b></div>
+      <div class="meter fear" id="mFear"><label>Fear</label><div class="bar"><i></i></div><b>0</b></div>
+      <div class="status" id="hudStatus"></div>
+    </div>
+    <div class="hud-br">
+      <div class="weapon">
+        <div class="w-name" id="wName">Unarmed</div>
+        <div class="w-ammo"><span id="wMag">–</span><small id="wSlash">/</small><span id="wRes">–</span></div>
+        <div class="w-dur" id="wDur"><i></i></div>
+        <div class="w-rel" id="wRel" hidden>Reloading</div>
+      </div>
+      <div class="kit">
+        <div><span>Torch</span><b id="kBat">100%</b></div>
+        <div><span>Bandages</span><b id="kBand">0</b></div>
+      </div>
+      <div class="kit2" id="kExtra"></div>
+    </div>
+    <div id="vehPanel" class="veh" hidden>
+      <div class="v-name" id="vName"></div>
+      <div class="v-spd"><b id="vSpd">0</b><small>km/h</small></div>
+      <div class="v-row"><label>Fuel</label><div class="bar" id="vFuel"><i></i></div></div>
+      <div class="v-row"><label>Body</label><div class="bar" id="vHp"><i></i></div></div>
+      <div class="v-foot"><span id="vTyre"></span><span id="vLights"></span><span id="vStore"></span></div>
+    </div>
+    <div id="waypoint" class="waypoint" hidden><i></i><span id="wpD"></span></div>
+    <div id="crosshair" class="crosshair" hidden></div>
+    <div id="scope" class="scope" hidden></div>
+    <div id="prompt" class="prompt" hidden></div>
+    <div id="toasts" class="toasts"></div>
+  </div>
+
+  <div id="subtitle" class="subtitle" hidden><span class="who"></span><span class="txt"></span></div>
+  <div id="hint" class="hint" hidden></div>
+
+  <div id="card" class="lvl-card" hidden>
+    <p class="kicker" id="cardArea"></p>
+    <h2 id="cardTitle"></h2>
+    <p class="fine" id="cardTime"></p>
+  </div>
+
+  <section id="choice" class="overlay" hidden>
+    <div class="card">
+      <p class="kicker">Decision · this follows you to the end</p>
+      <h2 id="choiceTitle"></h2>
+      <p id="choiceText" class="type"></p>
+      <div class="choices" id="choiceBtns"></div>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay" hidden>
+    <div class="card">
+      <p class="kicker" id="pauseLvl">Paused</p>
+      <h2>Hold your breath</h2>
+      <dl class="keys" id="pauseKeys"></dl>
+      <div class="row">
+        <button class="btn primary" id="btnResume">Resume</button>
+        <button class="btn" id="btnRestart">Restart level</button>
+        <button class="btn" id="btnQuit">Main menu</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="inv" class="overlay" hidden>
+    <div class="card wide">
+      <header class="card-head"><div><h2>Pack</h2><p class="fine" id="invCap"></p></div><button class="btn small" id="invClose">Close · Tab</button></header>
+      <div class="inv-grid" id="invGrid"></div>
+      <h3>Evidence &amp; recordings</h3>
+      <div id="invNotes" class="notes"></div>
+    </div>
+  </section>
+
+  <section id="reader" class="overlay reader" hidden>
+    <div class="paper">
+      <p class="kicker r-kind">Document</p>
+      <h2></h2>
+      <p class="r-body"></p>
+      <button class="btn small" id="readerClose">Put it away · E</button>
+    </div>
+  </section>
+
+  <section id="end" class="overlay" hidden>
+    <div class="card">
+      <p class="kicker" id="endKicker"></p>
+      <h2 id="endTitle"></h2>
+      <p class="type" id="endText"></p>
+      <dl class="stats" id="endStats"></dl>
+      <div class="row">
+        <button class="btn primary" id="btnNext">Continue</button>
+        <button class="btn" id="btnAgain">Play again</button>
+        <button class="btn" id="btnMenu">Main menu</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="death" class="overlay death" hidden>
+    <div class="card">
+      <p class="kicker">You were taken</p>
+      <h2 id="deathLine"></h2>
+      <div class="row">
+        <button class="btn primary" id="btnRevive">Last checkpoint</button>
+        <button class="btn" id="btnRetry">Restart level</button>
+        <button class="btn" id="btnDeathMenu">Main menu</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="ending" class="screen ending" hidden>
+    <div class="ending-col">
+      <p class="kicker" id="endingKicker"></p>
+      <h2 id="endingTitle"></h2>
+      <div class="type" id="endingText"></div>
+      <h3>What became of them</h3>
+      <ul id="endingFates" class="fates"></ul>
+      <button class="btn primary" id="btnEndingMenu">Main menu</button>
+    </div>
+  </section>
+
+  <div id="touch" hidden>
+    <div id="stick" class="stick"><i></i></div>
+    <div class="tbtns">
+      <button data-t="TouchFire" class="tb fire">Fire</button>
+      <button data-t="TouchAim" class="tb">Aim</button>
+      <button data-t="TouchUse" class="tb">Use</button>
+      <button data-t="TouchLight" class="tb">Torch</button>
+      <button data-t="TouchRun" class="tb">Run</button>
+      <button data-t="TouchCrouch" class="tb">Crouch</button>
+      <button data-t="TouchJump" class="tb">Jump</button>
+      <button data-t="TouchReload" class="tb">Reload</button>
+      <button data-t="TouchSwap" class="tb">Swap</button>
+      <button data-t="TouchPause" class="tb">Pause</button>
+      <button data-t="TouchBag" class="tb">Pack</button>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
